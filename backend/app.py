@@ -97,7 +97,9 @@ def parse_object_id(value):
 
 
 def create_app():
-    app = Flask(__name__)
+    base_dir = os.path.dirname(__file__)
+    frontend_dir = os.path.abspath(os.path.join(base_dir, "..", "frontend"))
+    app = Flask(__name__, static_folder=frontend_dir, static_url_path="")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 
@@ -528,6 +530,10 @@ def create_app():
                 "available_inventory": available_inventory,
             }
         )
+
+    @app.get("/")
+    def serve_index():
+        return app.send_static_file("index.html")
 
     return app
 

@@ -60,7 +60,7 @@ Set these environment variables in Render:
 
 The backend will auto-seed sample data on first run.
 
-### Render Commands
+### Render Commands (Single Web Service)
 
 **Recommended setup (repo root)**  
 - **Root Directory**: leave empty  
