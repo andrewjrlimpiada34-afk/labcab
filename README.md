@@ -60,6 +60,29 @@ Set these environment variables in Render:
 
 The backend will auto-seed sample data on first run.
 
+### Render Commands
+
+**Recommended setup (repo root)**  
+- **Root Directory**: leave empty  
+- **Build Command**:
+  ```
+  pip install -r backend/requirements.txt
+  ```
+- **Start Command**:
+  ```
+  gunicorn backend.app:app --bind 0.0.0.0:$PORT
+  ```
+
+**If you set Root Directory to `backend`**  
+- **Build Command**:
+  ```
+  pip install -r requirements.txt
+  ```
+- **Start Command**:
+  ```
+  gunicorn app:app --bind 0.0.0.0:$PORT
+  ```
+
 ## Seeded Sample Accounts
 
 - Admin: `admin@labcab.local` / `admin123`

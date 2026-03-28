@@ -15,7 +15,10 @@ from flask_jwt_extended import (
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from utils.pdf import build_receipt_pdf
+try:
+    from backend.utils.pdf import build_receipt_pdf
+except ImportError:
+    from utils.pdf import build_receipt_pdf
 
 
 mongo_client = None
