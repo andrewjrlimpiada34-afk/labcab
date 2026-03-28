@@ -1,4 +1,5 @@
 ﻿# LabCab On-The-Go
+# LabCab On-The-Go
 
 A full-stack lab apparatus borrowing and monitoring system with role-based access, real-time inventory updates, notifications, and PDF receipts.
 
