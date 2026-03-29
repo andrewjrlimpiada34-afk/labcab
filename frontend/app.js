@@ -5,14 +5,14 @@ let pollInterval = null;
 let apparatusCache = [];
 let cartItems = [];
 let modalApparatus = null;
+let heroImages = {};
 
 const authSection = document.getElementById("authSection");
 const appSection = document.getElementById("appSection");
-const adminSection = document.getElementById("adminSection");
-const borrowerSection = document.getElementById("borrowerSection");
 const userInfo = document.getElementById("userInfo");
 const logoutBtn = document.getElementById("logoutBtn");
 const toast = document.getElementById("toast");
+const pageNav = document.getElementById("pageNav");
 
 const apparatusModal = document.getElementById("apparatusModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -26,6 +26,10 @@ const cartCount = document.getElementById("cartCount");
 const overdueCount = document.getElementById("overdueCount");
 const dueSoonCount = document.getElementById("dueSoonCount");
 
+const heroPageSelect = document.getElementById("heroPageSelect");
+const heroFile = document.getElementById("heroFile");
+const uploadHero = document.getElementById("uploadHero");
+
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -38,15 +42,18 @@ function setAuth(user, token) {
   if (user) {
     authSection.classList.add("hidden");
     appSection.classList.remove("hidden");
+    pageNav.classList.remove("hidden");
     logoutBtn.hidden = false;
     userInfo.textContent = `${user.name} (${user.role})`;
-    adminSection.classList.toggle("hidden", user.role !== "admin");
-    borrowerSection.classList.toggle("hidden", user.role !== "borrower");
     greetingTitle.textContent = `Hello, ${user.name}!`;
+    document.querySelectorAll(".admin-only").forEach((el) => {
+      el.classList.toggle("hidden", user.role !== "admin");
+    });
     startPolling();
   } else {
     authSection.classList.remove("hidden");
     appSection.classList.add("hidden");
+    pageNav.classList.add("hidden");
     logoutBtn.hidden = true;
     userInfo.textContent = "";
     stopPolling();
@@ -86,6 +93,21 @@ function setupTabs() {
       document.getElementById("loginTab").classList.toggle("hidden", target !== "login");
       document.getElementById("registerTab").classList.toggle("hidden", target !== "register");
     });
+  });
+}
+
+function setupNav() {
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.addEventListener("click", () => showPage(btn.dataset.page));
+  });
+}
+
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((page) => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.page === pageId);
   });
 }
 
@@ -446,9 +468,63 @@ async function loadNotifications() {
   });
 }
 
+async function loadHeroImages() {
+  try {
+    const data = await apiGet("/hero-images");
+    heroImages = data || {};
+    applyHeroImages();
+  } catch (err) {
+    // ignore
+  }
+}
+
+function applyHeroImages() {
+  const mapping = {
+    dashboard: "hero-dashboard",
+    browse: "hero-browse",
+    borrowed: "hero-borrowed",
+    history: "hero-history",
+    notifications: "hero-notifications",
+    admin: "hero-admin",
+  };
+
+  Object.entries(mapping).forEach(([key, id]) => {
+    const hero = document.getElementById(id);
+    const image = heroImages[key];
+    if (hero && image) {
+      hero.style.setProperty("--hero-image", `url(${image})`);
+      hero.style.setProperty("--hero-opacity", "0.45");
+      hero.classList.add("hero-has-image");
+    }
+  });
+}
+
+async function uploadHeroImage() {
+  if (!heroFile.files.length) {
+    showToast("Select an image first");
+    return;
+  }
+  const file = heroFile.files[0];
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      await apiSend("/hero-images", "POST", {
+        page: heroPageSelect.value,
+        image_data: reader.result,
+      });
+      showToast("Hero image updated");
+      await loadHeroImages();
+    } catch (err) {
+      showToast("Upload failed");
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 async function loadAll() {
   await loadApparatus();
   renderCart();
+  await loadHeroImages();
   if (currentUser?.role === "admin") {
     await loadSummary();
     await loadAdminRecords();
@@ -475,6 +551,7 @@ closeModalBtn.addEventListener("click", closeModal);
 addToCartBtn.addEventListener("click", addToCart);
 
 setupTabs();
+setupNav();
 
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
@@ -486,19 +563,14 @@ applyFilters.addEventListener("click", loadAdminRecords);
 
 document.getElementById("confirmBorrow").addEventListener("click", confirmBorrow);
 
-document.getElementById("goToBrowse").addEventListener("click", () => {
-  document.getElementById("browseSection").scrollIntoView({ behavior: "smooth" });
-});
+document.getElementById("goToBrowse").addEventListener("click", () => showPage("browsePage"));
 
-document.getElementById("goToCart").addEventListener("click", () => {
-  document.getElementById("cartSection").scrollIntoView({ behavior: "smooth" });
-});
+document.getElementById("goToCart").addEventListener("click", () => showPage("cartPage"));
 
-document.getElementById("goToHistory").addEventListener("click", () => {
-  const target = document.getElementById("historySection");
-  if (target) {
-    target.scrollIntoView({ behavior: "smooth" });
-  }
-});
+document.getElementById("goToHistory").addEventListener("click", () => showPage("historyPage"));
+
+if (uploadHero) {
+  uploadHero.addEventListener("click", uploadHeroImage);
+}
 
 setAuth(null, null);

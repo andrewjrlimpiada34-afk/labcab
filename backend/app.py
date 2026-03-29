@@ -590,6 +590,30 @@ def create_app():
             }
         )
 
+    @app.get("/api/hero-images")
+    @jwt_required()
+    def list_hero_images():
+        db = get_db()
+        images = db.hero_images.find()
+        result = {item.get("page"): item.get("image_data") for item in images}
+        return jsonify(result)
+
+    @app.post("/api/hero-images")
+    @role_required("admin")
+    def upload_hero_image():
+        db = get_db()
+        data = request.get_json() or {}
+        page = data.get("page")
+        image_data = data.get("image_data")
+        if not page or not image_data:
+            return jsonify({"error": "Missing fields"}), 400
+        db.hero_images.update_one(
+            {"page": page},
+            {"$set": {"image_data": image_data, "uploaded_at": datetime.utcnow()}},
+            upsert=True,
+        )
+        return jsonify({"message": "Hero image updated"})
+
     @app.get("/")
     def serve_index():
         return app.send_static_file("index.html")

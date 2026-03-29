@@ -23,6 +23,15 @@
     </div>
   </header>
 
+  <nav id="pageNav" class="page-nav hidden">
+    <button class="nav-btn active" data-page="dashboardPage">Dashboard</button>
+    <button class="nav-btn" data-page="browsePage">Browse</button>
+    <button class="nav-btn" data-page="cartPage">Borrowed</button>
+    <button class="nav-btn" data-page="historyPage">History</button>
+    <button class="nav-btn" data-page="notificationsPage">Notifications</button>
+    <button class="nav-btn admin-only hidden" data-page="adminPage">Admin</button>
+  </nav>
+
   <main class="container">
     <section id="authSection" class="card auth-card">
       <div class="tabs">
@@ -54,113 +63,115 @@
     </section>
 
     <section id="appSection" class="hidden">
-      <section class="dashboard-card">
-        <div class="dashboard-top">
-          <div>
-            <h2 id="greetingTitle">Hello!</h2>
+      <section id="dashboardPage" class="page active">
+        <section class="hero" id="hero-dashboard">
+          <div class="hero-content">
+            <h1 id="greetingTitle">Hello!</h1>
             <p class="muted">Manage lab apparatus and borrowing in one place.</p>
           </div>
-          <div class="cart-pill">
-            <span>Items in Cart</span>
-            <strong id="cartCount">0</strong>
-            <button class="btn pill" id="goToCart">Borrow Cart</button>
-          </div>
-        </div>
-        <div class="alert-row">
-          <div class="alert-card">
-            <span class="alert-dot warning"></span>
-            <span>Overdue items</span>
-            <strong id="overdueCount">0</strong>
-          </div>
-          <div class="alert-card">
-            <span class="alert-dot info"></span>
-            <span>Due soon</span>
-            <strong id="dueSoonCount">0</strong>
-          </div>
-        </div>
-        <div class="quick-actions">
-          <button class="btn primary wide" id="goToBrowse">Borrow Equipment</button>
-          <button class="btn ghost wide" id="goToHistory">View History</button>
-        </div>
-      </section>
+        </section>
 
-      <section id="browseSection" class="card">
-        <div class="section-title">
-          <h2>Browse Apparatus</h2>
-          <span class="muted">Tap to add to cart</span>
-        </div>
-        <div id="apparatusGrid" class="apparatus-grid"></div>
-      </section>
-
-      <section id="cartSection" class="card cart-card">
-        <div class="section-title">
-          <h2>Borrow Cart</h2>
-          <span class="muted">Review items before confirming</span>
-        </div>
-        <div class="cart-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Apparatus</th>
-                <th>Qty</th>
-                <th>Remove</th>
-              </tr>
-            </thead>
-            <tbody id="cartTable"></tbody>
-          </table>
-        </div>
-        <div class="cart-footer">
-          <div class="total-items">Total items: <span id="cartTotal">0</span></div>
-          <label>How many hours?</label>
-          <input type="number" id="borrowHours" min="1" value="2" />
-          <button class="btn primary" id="confirmBorrow">Confirm Borrow</button>
-        </div>
-      </section>
-
-      <section id="adminSection" class="hidden">
-        <div class="grid four" id="summaryCards"></div>
-        <div class="grid two">
-          <div class="card">
-            <h2>Borrow Requests</h2>
-            <div class="filters">
-              <input type="text" id="filterBorrower" placeholder="Search borrower" />
-              <input type="text" id="filterApparatus" placeholder="Search apparatus" />
-              <button class="btn ghost" id="applyFilters">Filter</button>
+        <section class="dashboard-card">
+          <div class="dashboard-top">
+            <div class="cart-pill">
+              <span>Items Borrowed</span>
+              <strong id="cartCount">0</strong>
+              <button class="btn pill" id="goToCart">Borrowed Apparatus</button>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Borrower</th>
-                  <th>Apparatus</th>
-                  <th>Qty</th>
-                  <th>Due</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="adminBorrowTable"></tbody>
-            </table>
+            <div class="alert-row">
+              <div class="alert-card">
+                <span class="alert-dot warning"></span>
+                <span>Overdue items</span>
+                <strong id="overdueCount">0</strong>
+              </div>
+              <div class="alert-card">
+                <span class="alert-dot info"></span>
+                <span>Due soon</span>
+                <strong id="dueSoonCount">0</strong>
+              </div>
+            </div>
           </div>
-          <div class="card">
-            <h2>Borrowed Items</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Borrower</th>
-                  <th>Apparatus</th>
-                  <th>Qty</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="adminReturnTable"></tbody>
-            </table>
+          <div class="quick-actions">
+            <button class="btn primary wide" id="goToBrowse">Borrow Equipment</button>
+            <button class="btn ghost wide" id="goToHistory">View History</button>
           </div>
-        </div>
+        </section>
+
+        <section id="heroManager" class="card admin-only hidden">
+          <h3>Hero Image Manager</h3>
+          <p class="muted">Upload a banner for each page (Dashboard, Browse, Borrowed, History, Notifications, Admin).</p>
+          <div class="hero-form">
+            <select id="heroPageSelect">
+              <option value="dashboard">Dashboard</option>
+              <option value="browse">Browse</option>
+              <option value="borrowed">Borrowed</option>
+              <option value="history">History</option>
+              <option value="notifications">Notifications</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input type="file" id="heroFile" accept="image/*" />
+            <button class="btn primary" id="uploadHero">Upload</button>
+          </div>
+        </section>
       </section>
 
-      <section id="borrowerSection">
-        <div class="card" id="historySection">
+      <section id="browsePage" class="page">
+        <section class="hero" id="hero-browse">
+          <div class="hero-content">
+            <h1>Browse Apparatus</h1>
+            <p class="muted">Pick what you need for today’s lab session.</p>
+          </div>
+        </section>
+        <section class="card">
+          <div class="section-title">
+            <h2>Available Equipment</h2>
+            <span class="muted">Tap to add to borrowed list</span>
+          </div>
+          <div id="apparatusGrid" class="apparatus-grid"></div>
+        </section>
+      </section>
+
+      <section id="cartPage" class="page">
+        <section class="hero" id="hero-borrowed">
+          <div class="hero-content">
+            <h1>Borrowed Apparatus</h1>
+            <p class="muted">Review and confirm your borrowed items.</p>
+          </div>
+        </section>
+        <section class="card cart-card">
+          <div class="section-title">
+            <h2>Borrowed Apparatus</h2>
+            <span class="muted">Review items before confirming</span>
+          </div>
+          <div class="cart-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Apparatus</th>
+                  <th>Qty</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody id="cartTable"></tbody>
+            </table>
+          </div>
+          <div class="cart-footer">
+            <div class="total-items">Total items: <span id="cartTotal">0</span></div>
+            <label>How many hours?</label>
+            <input type="number" id="borrowHours" min="1" value="2" />
+            <button class="btn primary" id="confirmBorrow">Confirm Borrow</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="historyPage" class="page">
+        <section class="hero" id="hero-history">
+          <div class="hero-content">
+            <h1>Borrow History</h1>
+            <p class="muted">Track what you borrowed and due dates.</p>
+          </div>
+        </section>
+        <section class="card" id="historySection">
           <h2>My Borrow History</h2>
           <table>
             <thead>
@@ -175,12 +186,70 @@
             </thead>
             <tbody id="myHistoryTable"></tbody>
           </table>
-        </div>
+        </section>
       </section>
 
-      <section id="notificationsSection" class="card">
-        <h2>Notifications</h2>
-        <div id="notificationList" class="notification-list"></div>
+      <section id="notificationsPage" class="page">
+        <section class="hero" id="hero-notifications">
+          <div class="hero-content">
+            <h1>Notifications</h1>
+            <p class="muted">Stay informed about approvals and due reminders.</p>
+          </div>
+        </section>
+        <section id="notificationsSection" class="card">
+          <h2>Notifications</h2>
+          <div id="notificationList" class="notification-list"></div>
+        </section>
+      </section>
+
+      <section id="adminPage" class="page admin-only hidden">
+        <section class="hero" id="hero-admin">
+          <div class="hero-content">
+            <h1>Admin Control</h1>
+            <p class="muted">Approve requests and monitor apparatus usage.</p>
+          </div>
+        </section>
+        <section id="adminSection">
+          <div class="grid four" id="summaryCards"></div>
+          <div class="grid two">
+            <div class="card">
+              <h2>Borrow Requests</h2>
+              <div class="filters">
+                <input type="text" id="filterBorrower" placeholder="Search borrower" />
+                <input type="text" id="filterApparatus" placeholder="Search apparatus" />
+                <button class="btn ghost" id="applyFilters">Filter</button>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Borrower</th>
+                    <th>Apparatus</th>
+                    <th>Qty</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBorrowTable"></tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h2>Borrowed Items</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Borrower</th>
+                    <th>Apparatus</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminReturnTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </section>
     </section>
   </main>
@@ -197,7 +266,7 @@
         <input type="number" id="modalQuantity" min="1" value="1" />
       </div>
       <div class="modal-footer">
-        <button class="btn primary" id="addToCart">Add to Cart</button>
+        <button class="btn primary" id="addToCart">Add to Borrowed</button>
       </div>
     </div>
   </div>
