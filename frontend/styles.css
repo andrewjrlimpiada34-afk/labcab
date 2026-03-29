@@ -1,15 +1,16 @@
 ﻿:root {
-  --bg: #0c1b2a;
-  --panel: #11283d;
-  --card: #152f49;
-  --accent: #2dd4bf;
-  --accent-2: #38bdf8;
-  --warning: #fbbf24;
-  --danger: #ef4444;
-  --text: #e2e8f0;
+  --navy: #0b1d33;
+  --navy-deep: #081526;
+  --orange: #f97316;
+  --orange-soft: #fb923c;
+  --cream: #f8fafc;
   --muted: #94a3b8;
-  --white: #ffffff;
-  --shadow: rgba(15, 23, 42, 0.45);
+  --card: #10243d;
+  --card-soft: #122b47;
+  --danger: #ef4444;
+  --warning: #fbbf24;
+  --accent: #38bdf8;
+  --shadow: rgba(2, 8, 20, 0.45);
 }
 
 * {
@@ -19,9 +20,36 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #1e3a5f, #0b1624 55%, #070f1a);
-  color: var(--text);
+  color: var(--cream);
   min-height: 100vh;
+  background: radial-gradient(circle at top, #1f3b5d, var(--navy-deep));
+  transition: background 0.4s ease;
+}
+
+body.logged-in {
+  background: radial-gradient(circle at top, #1d3d5a, #06101c);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(120deg, rgba(12, 27, 48, 0.9), rgba(7, 14, 24, 0.9));
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'><rect width='1200' height='800' fill='%230b1d33'/><rect x='120' y='120' width='960' height='560' rx='28' fill='%23122642' stroke='%23f97316' stroke-width='6'/><rect x='160' y='170' width='880' height='460' rx='18' fill='%231a3557'/><rect x='160' y='170' width='420' height='460' fill='%230f233c'/><rect x='620' y='170' width='420' height='460' fill='%230f233c'/><line x1='600' y1='170' x2='600' y2='630' stroke='%23f97316' stroke-width='4'/><circle cx='470' cy='400' r='10' fill='%23f97316'/><circle cx='730' cy='400' r='10' fill='%23f97316'/></svg>");
+  opacity: 0.25;
+}
+
+body.logged-in::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'><rect width='1200' height='800' fill='%230b1d33'/><rect x='120' y='120' width='960' height='560' rx='28' fill='%23122642' stroke='%23f97316' stroke-width='6'/><rect x='160' y='170' width='880' height='460' rx='18' fill='%231a3557'/><rect x='160' y='170' width='880' height='460' fill='none' stroke='%23f97316' stroke-width='4'/><rect x='160' y='170' width='420' height='460' fill='%230f233c'/><rect x='620' y='170' width='420' height='460' fill='%230f233c'/><path d='M160 170 L60 120 L60 620 L160 630 Z' fill='%231b375a'/><path d='M1040 170 L1140 120 L1140 620 L1040 630 Z' fill='%231b375a'/></svg>");
+  opacity: 0.32;
 }
 
 .topbar {
@@ -29,8 +57,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 20px 40px;
-  background: rgba(10, 18, 30, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(8, 18, 30, 0.85);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
@@ -47,7 +75,7 @@ body {
 
 .subtitle {
   font-size: 14px;
-  color: var(--accent);
+  color: var(--orange);
 }
 
 .user-area {
@@ -63,11 +91,11 @@ body {
 }
 
 .card {
-  background: var(--card);
+  background: rgba(16, 36, 61, 0.95);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 20px 40px var(--shadow);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(249, 115, 22, 0.15);
 }
 
 .auth-card {
@@ -84,15 +112,15 @@ body {
 .tab {
   flex: 1;
   padding: 10px;
-  background: var(--panel);
+  background: var(--card-soft);
   border: none;
-  color: var(--text);
+  color: var(--cream);
   border-radius: 10px;
   cursor: pointer;
 }
 
 .tab.active {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--orange), var(--orange-soft));
   color: #0b1624;
   font-weight: 700;
 }
@@ -110,7 +138,7 @@ select {
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, 0.3);
   background: #0f2033;
-  color: var(--text);
+  color: var(--cream);
 }
 
 .btn {
@@ -122,14 +150,14 @@ select {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--orange), var(--orange-soft));
   color: #08131f;
 }
 
 .btn.ghost {
   background: transparent;
   border: 1px solid rgba(148, 163, 184, 0.4);
-  color: var(--text);
+  color: var(--cream);
 }
 
 .grid {
@@ -155,10 +183,14 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 12px;
-  background: rgba(15, 32, 51, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 32, 51, 0.85);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+}
+
+.apparatus-card button {
+  margin-left: 12px;
 }
 
 .badge {
@@ -169,7 +201,7 @@ select {
 }
 
 .badge.available {
-  background: rgba(45, 212, 191, 0.2);
+  background: rgba(56, 189, 248, 0.15);
   color: var(--accent);
 }
 
@@ -221,12 +253,70 @@ th {
 .notification {
   padding: 12px;
   border-radius: 10px;
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--orange);
   background: rgba(15, 32, 51, 0.7);
 }
 
 .notification.unread {
   border-left-color: var(--warning);
+}
+
+.cart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-footer {
+  display: grid;
+  gap: 10px;
+}
+
+.total-items {
+  font-weight: 600;
+  color: var(--orange-soft);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 8, 20, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal-content {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 16px;
+  width: min(420px, 90vw);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 24px 50px var(--shadow);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-footer {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stat {
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 10px;
 }
 
 .hidden {
@@ -243,6 +333,7 @@ th {
   border: 1px solid rgba(148, 163, 184, 0.3);
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 20;
 }
 
 .toast.show {
@@ -259,13 +350,4 @@ th {
   .filters {
     flex-direction: column;
   }
-}.muted {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.stat {
-  font-size: 28px;
-  font-weight: 700;
-  margin-top: 10px;
 }

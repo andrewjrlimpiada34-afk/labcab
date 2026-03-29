@@ -314,6 +314,65 @@ def create_app():
 
         return jsonify(serialize_record(record, user, apparatus)), 201
 
+    @app.post("/api/borrow-cart/confirm")
+    @jwt_required()
+    def confirm_borrow_cart():
+        db = get_db()
+        user = current_user()
+        data = request.get_json() or {}
+        hours = int(data.get("hours", 0))
+        items = data.get("items", [])
+
+        if hours <= 0:
+            return jsonify({"error": "Hours must be positive"}), 400
+        if not items:
+            return jsonify({"error": "Cart is empty"}), 400
+
+        apparatus_map = {}
+        for item in items:
+            apparatus_id = parse_object_id(item.get("apparatus_id"))
+            quantity = int(item.get("quantity", 0))
+            if not apparatus_id or quantity <= 0:
+                return jsonify({"error": "Invalid cart item"}), 400
+            apparatus = db.apparatus.find_one({"_id": apparatus_id})
+            if not apparatus:
+                return jsonify({"error": "Invalid apparatus"}), 404
+            if apparatus.get("available_quantity", 0) < quantity:
+                return jsonify({"error": f"Insufficient stock for {apparatus.get('name')}"}), 400
+            apparatus_map[str(apparatus_id)] = (apparatus, quantity)
+
+        due_datetime = datetime.utcnow() + timedelta(hours=hours)
+        borrow_date = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+        batch_id = uuid.uuid4().hex[:10].upper()
+
+        records = []
+        for index, (apparatus_id_str, payload) in enumerate(apparatus_map.items(), start=1):
+            apparatus, quantity = payload
+            db.apparatus.update_one(
+                {"_id": apparatus["_id"]},
+                {"$inc": {"available_quantity": -quantity}},
+            )
+            record = {
+                "user_id": user["_id"],
+                "apparatus_id": apparatus["_id"],
+                "quantity": quantity,
+                "borrow_date": borrow_date,
+                "due_date": due_datetime.date().isoformat(),
+                "status": "Borrowed",
+                "transaction_id": f"{batch_id}-{index}",
+                "apparatus_name": apparatus.get("name"),
+            }
+            records.append(record)
+
+        if records:
+            db.borrow_records.insert_many(records)
+            notify_user(
+                user["_id"],
+                f"Borrow confirmed: {len(records)} item(s) due on {due_datetime.date().isoformat()}.",
+            )
+
+        return jsonify({"message": "Borrow confirmed", "count": len(records)})
+
     @app.get("/api/borrow-records")
     @role_required("admin")
     def list_borrow_records():

@@ -2,6 +2,9 @@
 let accessToken = null;
 let currentUser = null;
 let pollInterval = null;
+let apparatusCache = [];
+let cartItems = [];
+let modalApparatus = null;
 
 const authSection = document.getElementById("authSection");
 const appSection = document.getElementById("appSection");
@@ -10,6 +13,13 @@ const borrowerSection = document.getElementById("borrowerSection");
 const userInfo = document.getElementById("userInfo");
 const logoutBtn = document.getElementById("logoutBtn");
 const toast = document.getElementById("toast");
+
+const apparatusModal = document.getElementById("apparatusModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalStock = document.getElementById("modalStock");
+const modalQuantity = document.getElementById("modalQuantity");
+const closeModalBtn = document.getElementById("closeModal");
+const addToCartBtn = document.getElementById("addToCart");
 
 function showToast(message) {
   toast.textContent = message;
@@ -27,12 +37,14 @@ function setAuth(user, token) {
     userInfo.textContent = `${user.name} (${user.role})`;
     adminSection.classList.toggle("hidden", user.role !== "admin");
     borrowerSection.classList.toggle("hidden", user.role !== "borrower");
+    document.body.classList.add("logged-in");
     startPolling();
   } else {
     authSection.classList.remove("hidden");
     appSection.classList.add("hidden");
     logoutBtn.hidden = true;
     userInfo.textContent = "";
+    document.body.classList.remove("logged-in");
     stopPolling();
   }
 }
@@ -100,28 +112,126 @@ async function handleRegister(event) {
 }
 
 async function loadApparatus() {
-  const apparatus = await apiGet("/apparatus");
+  apparatusCache = await apiGet("/apparatus");
   const grid = document.getElementById("apparatusGrid");
-  const select = document.getElementById("apparatusSelect");
   grid.innerHTML = "";
-  select.innerHTML = "";
-  apparatus.forEach((item) => {
+  apparatusCache.forEach((item) => {
     const card = document.createElement("div");
     card.className = "apparatus-card";
+    const disabled = item.available_quantity <= 0;
     card.innerHTML = `
       <div>
         <strong>${item.name}</strong>
         <div class="muted">Available: ${item.available_quantity} / ${item.total_quantity}</div>
       </div>
-      <span class="badge ${item.status}">${badgeLabel(item.status)}</span>
+      <div>
+        <span class="badge ${item.status}">${badgeLabel(item.status)}</span>
+        <button class="btn ghost" ${disabled ? "disabled" : ""} data-id="${item.id}">Borrow</button>
+      </div>
     `;
     grid.appendChild(card);
-
-    const option = document.createElement("option");
-    option.value = item.id;
-    option.textContent = `${item.name} (Available ${item.available_quantity})`;
-    select.appendChild(option);
   });
+
+  grid.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => openModal(btn.dataset.id));
+  });
+}
+
+function openModal(apparatusId) {
+  modalApparatus = apparatusCache.find((item) => item.id === apparatusId);
+  if (!modalApparatus) return;
+  modalTitle.textContent = modalApparatus.name;
+  modalStock.textContent = `Available: ${modalApparatus.available_quantity}`;
+  modalQuantity.value = 1;
+  apparatusModal.classList.remove("hidden");
+}
+
+function closeModal() {
+  apparatusModal.classList.add("hidden");
+  modalApparatus = null;
+}
+
+function addToCart() {
+  if (!modalApparatus) return;
+  const qty = Number(modalQuantity.value);
+  if (qty <= 0) {
+    showToast("Quantity must be positive");
+    return;
+  }
+  const existing = cartItems.find((item) => item.id === modalApparatus.id);
+  const currentQty = existing ? existing.quantity : 0;
+  if (qty + currentQty > modalApparatus.available_quantity) {
+    showToast("Not enough stock available");
+    return;
+  }
+  if (existing) {
+    existing.quantity += qty;
+  } else {
+    cartItems.push({
+      id: modalApparatus.id,
+      name: modalApparatus.name,
+      quantity: qty,
+    });
+  }
+  renderCart();
+  closeModal();
+}
+
+function renderCart() {
+  const table = document.getElementById("cartTable");
+  const total = document.getElementById("cartTotal");
+  table.innerHTML = "";
+  let totalItems = 0;
+  cartItems.forEach((item) => {
+    totalItems += item.quantity;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.quantity}</td>
+      <td><button class="btn ghost" data-id="${item.id}">Remove</button></td>
+    `;
+    table.appendChild(row);
+  });
+  total.textContent = totalItems;
+
+  table.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => removeFromCart(btn.dataset.id));
+  });
+}
+
+function removeFromCart(id) {
+  cartItems = cartItems.filter((item) => item.id !== id);
+  renderCart();
+}
+
+async function confirmBorrow() {
+  if (cartItems.length === 0) {
+    showToast("Cart is empty");
+    return;
+  }
+  const hours = Number(document.getElementById("borrowHours").value);
+  if (!hours || hours <= 0) {
+    showToast("Enter valid hours");
+    return;
+  }
+  if (!confirm("Confirm this borrow transaction?")) {
+    return;
+  }
+  try {
+    await apiSend("/borrow-cart/confirm", "POST", {
+      hours,
+      items: cartItems.map((item) => ({
+        apparatus_id: item.id,
+        quantity: item.quantity,
+      })),
+    });
+    showToast("Borrow confirmed");
+    cartItems = [];
+    renderCart();
+    await loadAll();
+  } catch (err) {
+    showToast("Borrow failed");
+  }
 }
 
 function badgeLabel(status) {
@@ -136,28 +246,7 @@ function statusBadge(status) {
   if (status === "Borrowed") cls = "low_stock";
   if (status === "Pending") cls = "low_stock";
   if (status === "Rejected") cls = "in_use";
-  return `<span class=\"badge ${cls}\">${status}</span>`;
-}
-
-async function handleBorrow(event) {
-  event.preventDefault();
-  const apparatusId = document.getElementById("apparatusSelect").value;
-  const quantity = document.getElementById("borrowQuantity").value;
-  const dueDate = document.getElementById("borrowDueDate").value;
-  if (!confirm("Submit this borrow request?")) {
-    return;
-  }
-  try {
-    await apiSend("/borrow-requests", "POST", {
-      apparatus_id: apparatusId,
-      quantity: Number(quantity),
-      due_date: dueDate,
-    });
-    showToast("Borrow request submitted");
-    await loadAll();
-  } catch (err) {
-    showToast("Borrow request failed");
-  }
+  return `<span class="badge ${cls}">${status}</span>`;
 }
 
 async function loadSummary() {
@@ -325,6 +414,7 @@ async function loadNotifications() {
 
 async function loadAll() {
   await loadApparatus();
+  renderCart();
   if (currentUser?.role === "admin") {
     await loadSummary();
     await loadAdminRecords();
@@ -347,18 +437,19 @@ function stopPolling() {
 }
 
 logoutBtn.addEventListener("click", () => setAuth(null, null));
+closeModalBtn.addEventListener("click", closeModal);
+addToCartBtn.addEventListener("click", addToCart);
 
 setupTabs();
 
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
-const borrowForm = document.getElementById("borrowForm");
+const applyFilters = document.getElementById("applyFilters");
 
 loginForm.addEventListener("submit", handleLogin);
 registerForm.addEventListener("submit", handleRegister);
-borrowForm.addEventListener("submit", handleBorrow);
-
-const applyFilters = document.getElementById("applyFilters");
 applyFilters.addEventListener("click", loadAdminRecords);
+
+document.getElementById("confirmBorrow").addEventListener("click", confirmBorrow);
 
 setAuth(null, null);

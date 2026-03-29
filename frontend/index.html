@@ -43,11 +43,6 @@
           <input type="email" name="email" required />
           <label>Password</label>
           <input type="password" name="password" required />
-          <label>Role</label>
-          <select name="role">
-            <option value="borrower">Student/Borrower</option>
-            <option value="admin">Admin</option>
-          </select>
           <button class="btn primary" type="submit">Register</button>
         </form>
       </div>
@@ -59,18 +54,26 @@
           <h2>Apparatus Inventory</h2>
           <div id="apparatusGrid" class="apparatus-grid"></div>
         </div>
-        <div class="card">
-          <h2>Borrow Request</h2>
-          <form id="borrowForm">
-            <label>Apparatus</label>
-            <select id="apparatusSelect" required></select>
-            <label>Quantity</label>
-            <input type="number" id="borrowQuantity" min="1" value="1" required />
-            <label>Due Date</label>
-            <input type="date" id="borrowDueDate" required />
-            <button class="btn primary" type="submit">Submit Request</button>
-          </form>
-          <div class="hint">Requests require admin approval before equipment is released.</div>
+        <div class="card cart-card">
+          <h2>Borrow Cart</h2>
+          <div class="cart-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Apparatus</th>
+                  <th>Qty</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody id="cartTable"></tbody>
+            </table>
+          </div>
+          <div class="cart-footer">
+            <div class="total-items">Total items: <span id="cartTotal">0</span></div>
+            <label>How many hours?</label>
+            <input type="number" id="borrowHours" min="1" value="2" />
+            <button class="btn primary" id="confirmBorrow">Confirm Borrow</button>
+          </div>
         </div>
       </div>
 
@@ -143,6 +146,23 @@
       </section>
     </section>
   </main>
+
+  <div id="apparatusModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Apparatus</h3>
+        <button class="btn ghost" id="closeModal">Close</button>
+      </div>
+      <div class="modal-body">
+        <p id="modalStock">Available: 0</p>
+        <label>Quantity</label>
+        <input type="number" id="modalQuantity" min="1" value="1" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn primary" id="addToCart">Add to Cart</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast"></div>
   <script>window.API_BASE = "/api";</script>
