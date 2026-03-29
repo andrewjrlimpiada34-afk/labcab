@@ -21,6 +21,11 @@ const modalQuantity = document.getElementById("modalQuantity");
 const closeModalBtn = document.getElementById("closeModal");
 const addToCartBtn = document.getElementById("addToCart");
 
+const greetingTitle = document.getElementById("greetingTitle");
+const cartCount = document.getElementById("cartCount");
+const overdueCount = document.getElementById("overdueCount");
+const dueSoonCount = document.getElementById("dueSoonCount");
+
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -37,14 +42,13 @@ function setAuth(user, token) {
     userInfo.textContent = `${user.name} (${user.role})`;
     adminSection.classList.toggle("hidden", user.role !== "admin");
     borrowerSection.classList.toggle("hidden", user.role !== "borrower");
-    document.body.classList.add("logged-in");
+    greetingTitle.textContent = `Hello, ${user.name}!`;
     startPolling();
   } else {
     authSection.classList.remove("hidden");
     appSection.classList.add("hidden");
     logoutBtn.hidden = true;
     userInfo.textContent = "";
-    document.body.classList.remove("logged-in");
     stopPolling();
   }
 }
@@ -111,6 +115,16 @@ async function handleRegister(event) {
   }
 }
 
+function apparatusIcon(name) {
+  const key = name.toLowerCase();
+  if (key.includes("beaker")) return "⚗️";
+  if (key.includes("flask")) return "🧪";
+  if (key.includes("tube")) return "🧫";
+  if (key.includes("rod")) return "🥄";
+  if (key.includes("funnel")) return "🧪";
+  return "🔬";
+}
+
 async function loadApparatus() {
   apparatusCache = await apiGet("/apparatus");
   const grid = document.getElementById("apparatusGrid");
@@ -120,14 +134,11 @@ async function loadApparatus() {
     card.className = "apparatus-card";
     const disabled = item.available_quantity <= 0;
     card.innerHTML = `
-      <div>
-        <strong>${item.name}</strong>
-        <div class="muted">Available: ${item.available_quantity} / ${item.total_quantity}</div>
-      </div>
-      <div>
-        <span class="badge ${item.status}">${badgeLabel(item.status)}</span>
-        <button class="btn ghost" ${disabled ? "disabled" : ""} data-id="${item.id}">Borrow</button>
-      </div>
+      <span class="apparatus-pill">${badgeLabel(item.status)}</span>
+      <div class="apparatus-icon">${apparatusIcon(item.name)}</div>
+      <strong>${item.name}</strong>
+      <div class="muted">Available: ${item.available_quantity} / ${item.total_quantity}</div>
+      <button class="btn primary" ${disabled ? "disabled" : ""} data-id="${item.id}">Borrow</button>
     `;
     grid.appendChild(card);
   });
@@ -193,6 +204,7 @@ function renderCart() {
     table.appendChild(row);
   });
   total.textContent = totalItems;
+  cartCount.textContent = totalItems;
 
   table.querySelectorAll("button").forEach((btn) => {
     btn.addEventListener("click", () => removeFromCart(btn.dataset.id));
@@ -249,6 +261,17 @@ function statusBadge(status) {
   return `<span class="badge ${cls}">${status}</span>`;
 }
 
+function computeDueSoon(records) {
+  const now = new Date();
+  const soon = new Date();
+  soon.setDate(now.getDate() + 2);
+  return records.filter((record) => {
+    if (record.status !== "Borrowed") return false;
+    const due = new Date(record.due_date);
+    return due <= soon && due >= now;
+  }).length;
+}
+
 async function loadSummary() {
   const summary = await apiGet("/dashboard/summary");
   const container = document.getElementById("summaryCards");
@@ -280,7 +303,10 @@ async function loadAdminRecords() {
   requestTable.innerHTML = "";
   returnTable.innerHTML = "";
 
+  let overdue = 0;
   records.forEach((record) => {
+    if (record.status === "Overdue") overdue += 1;
+
     if (record.status === "Pending") {
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -311,6 +337,9 @@ async function loadAdminRecords() {
       returnTable.appendChild(row);
     }
   });
+
+  overdueCount.textContent = overdue;
+  dueSoonCount.textContent = 0;
 
   requestTable.querySelectorAll("button").forEach((btn) => {
     btn.addEventListener("click", () => handleAdminAction(btn.dataset.id, btn.dataset.action));
@@ -352,6 +381,11 @@ async function loadBorrowerHistory() {
   const records = await apiGet("/borrow-records/me");
   const table = document.getElementById("myHistoryTable");
   table.innerHTML = "";
+
+  const overdue = records.filter((record) => record.status === "Overdue").length;
+  overdueCount.textContent = overdue;
+  dueSoonCount.textContent = computeDueSoon(records);
+
   records.forEach((record) => {
     const row = document.createElement("tr");
     const receiptButton = ["Borrowed", "Returned", "Overdue"].includes(record.status)
@@ -451,5 +485,20 @@ registerForm.addEventListener("submit", handleRegister);
 applyFilters.addEventListener("click", loadAdminRecords);
 
 document.getElementById("confirmBorrow").addEventListener("click", confirmBorrow);
+
+document.getElementById("goToBrowse").addEventListener("click", () => {
+  document.getElementById("browseSection").scrollIntoView({ behavior: "smooth" });
+});
+
+document.getElementById("goToCart").addEventListener("click", () => {
+  document.getElementById("cartSection").scrollIntoView({ behavior: "smooth" });
+});
+
+document.getElementById("goToHistory").addEventListener("click", () => {
+  const target = document.getElementById("historySection");
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth" });
+  }
+});
 
 setAuth(null, null);

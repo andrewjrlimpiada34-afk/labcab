@@ -9,8 +9,13 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="logo">LabCab</span>
-      <span class="subtitle">On-The-Go</span>
+      <div class="logo-wrap">
+        <div class="logo-icon">🧪</div>
+        <div>
+          <div class="logo">LabCab</div>
+          <div class="subtitle">On-The-Go</div>
+        </div>
+      </div>
     </div>
     <div class="user-area">
       <span id="userInfo"></span>
@@ -49,33 +54,68 @@
     </section>
 
     <section id="appSection" class="hidden">
-      <div class="grid two">
-        <div class="card">
-          <h2>Apparatus Inventory</h2>
-          <div id="apparatusGrid" class="apparatus-grid"></div>
+      <section class="dashboard-card">
+        <div class="dashboard-top">
+          <div>
+            <h2 id="greetingTitle">Hello!</h2>
+            <p class="muted">Manage lab apparatus and borrowing in one place.</p>
+          </div>
+          <div class="cart-pill">
+            <span>Items in Cart</span>
+            <strong id="cartCount">0</strong>
+            <button class="btn pill" id="goToCart">Borrow Cart</button>
+          </div>
         </div>
-        <div class="card cart-card">
+        <div class="alert-row">
+          <div class="alert-card">
+            <span class="alert-dot warning"></span>
+            <span>Overdue items</span>
+            <strong id="overdueCount">0</strong>
+          </div>
+          <div class="alert-card">
+            <span class="alert-dot info"></span>
+            <span>Due soon</span>
+            <strong id="dueSoonCount">0</strong>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <button class="btn primary wide" id="goToBrowse">Borrow Equipment</button>
+          <button class="btn ghost wide" id="goToHistory">View History</button>
+        </div>
+      </section>
+
+      <section id="browseSection" class="card">
+        <div class="section-title">
+          <h2>Browse Apparatus</h2>
+          <span class="muted">Tap to add to cart</span>
+        </div>
+        <div id="apparatusGrid" class="apparatus-grid"></div>
+      </section>
+
+      <section id="cartSection" class="card cart-card">
+        <div class="section-title">
           <h2>Borrow Cart</h2>
-          <div class="cart-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Apparatus</th>
-                  <th>Qty</th>
-                  <th>Remove</th>
-                </tr>
-              </thead>
-              <tbody id="cartTable"></tbody>
-            </table>
-          </div>
-          <div class="cart-footer">
-            <div class="total-items">Total items: <span id="cartTotal">0</span></div>
-            <label>How many hours?</label>
-            <input type="number" id="borrowHours" min="1" value="2" />
-            <button class="btn primary" id="confirmBorrow">Confirm Borrow</button>
-          </div>
+          <span class="muted">Review items before confirming</span>
         </div>
-      </div>
+        <div class="cart-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Apparatus</th>
+                <th>Qty</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody id="cartTable"></tbody>
+          </table>
+        </div>
+        <div class="cart-footer">
+          <div class="total-items">Total items: <span id="cartTotal">0</span></div>
+          <label>How many hours?</label>
+          <input type="number" id="borrowHours" min="1" value="2" />
+          <button class="btn primary" id="confirmBorrow">Confirm Borrow</button>
+        </div>
+      </section>
 
       <section id="adminSection" class="hidden">
         <div class="grid four" id="summaryCards"></div>
@@ -120,7 +160,7 @@
       </section>
 
       <section id="borrowerSection">
-        <div class="card">
+        <div class="card" id="historySection">
           <h2>My Borrow History</h2>
           <table>
             <thead>
@@ -138,11 +178,9 @@
         </div>
       </section>
 
-      <section id="notificationsSection">
-        <div class="card">
-          <h2>Notifications</h2>
-          <div id="notificationList" class="notification-list"></div>
-        </div>
+      <section id="notificationsSection" class="card">
+        <h2>Notifications</h2>
+        <div id="notificationList" class="notification-list"></div>
       </section>
     </section>
   </main>
